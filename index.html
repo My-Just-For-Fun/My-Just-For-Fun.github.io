@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket示例</title>
+</head>
+<body>
+<h1>WebSocket示例</h1>
+<div>
+    <input type="text" id="message" class="message" placeholder="输入消息">
+    <button id="zidian">生成</button>
+</div>
+<div id="messages"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+    function sendMessage(message) {
+        if (webSocket.readyState === WebSocket.OPEN) {
+            webSocket.send(message);
+            showMessage('已发送消息：' + message);
+        } else {
+            showMessage('连接未打开');
+        }
+    }
+
+    function showMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        document.getElementById('messages').appendChild(messageDiv);
+    }
+
+    $(document).ready(function () {
+        $('#sendButton').click(function () {
+            const messageInput = $('#message');
+            const message = messageInput.val();
+            if (message) {
+                sendMessage(message);
+                messageInput.val('');
+            }
+        });
+
+        $('#zidian').click(function () {
+            const dicttypeid = 'WGH_CALCUL_STATUS', dicttypename = '状态';
+            const items = [['1', '保存'], ['2', '测算']];
+            const sql = bcPmctlDictEntry(dicttypeid, dicttypename, items);
+            showMessage(sql);
+            const sql2 = bcPmctlDictType(dicttypeid, dicttypename);
+            showMessage(sql2);
+        });
+    });
+
+    function bcPmctlDictType(dicttypeid, dicttypename) {
+        let sql = "INSERT INTO public.bc_pmctl_dict_type (dicttypeid, dicttypename, parentid, up_seq, rank) VALUES ";
+        let values = `('${dicttypeid}', '${dicttypename}', null, '.${dicttypeid}.', '1')`;
+        sql += values;
+        return sql +=';'
+    }
+
+    function bcPmctlDictEntry(dicttypeid, dicttypename, items) {
+        let sql = "INSERT INTO public.bc_pmctl_dict_entry (dicttypeid, dictid, dictname, status, display_order, rank, parentid, up_seq) VALUES ";
+        items.forEach((item, index) => {
+            let values = `('${dicttypeid}', '${item[0]}', '${item[1]}', '1', '${index + 1}', '1', '', '.${index + 1}.')`;
+            sql += values;
+            if (index !== items.length - 1) {
+                sql += ", ";
+            }
+        });
+        return sql +=';';
+    }
+</script>
+</body>
+</html>
